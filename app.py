@@ -2,117 +2,177 @@ import streamlit as st
 import hashlib
 import time
 
-# 1. 页面基础配置
-st.set_page_config(page_title="灵魂契合度实验室", page_icon="🌙", layout="centered")
+# 1. 页面配置
+st.set_page_config(page_title="性格城市匹配测试", page_icon="📍", layout="centered")
 
-# 2. CSS 注入：固定白色背景，优化深色文字
+# 2. CSS 重构：调大标题字号并优化排版
 st.markdown("""
     <style>
-    /* 强制固定网页背景为白色 */
-    .stApp {
-        background-color: #FFFFFF !important;
-        color: #31333F !important;
-    }
+    .stApp { background-color: #FFFFFF !important; color: #31333F !important; }
     
-    /* 确保输入框和多选框的标签为深色且加粗 */
+    /* 核心优化：超大渐变标题 */
+    .hero-title {
+        font-size: 3.5rem; /* 从 2.8 调大到 3.5 */
+        font-weight: 900;
+        text-align: center;
+        background: -webkit-linear-gradient(45deg, #00C1D4, #4AA9FF);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-top: 40px;
+        margin-bottom: 5px;
+        line-height: 1.1; /* 收紧行高，更有视觉张力 */
+        letter-spacing: -2px; /* 紧凑排版 */
+    }
+
+    .icon-container {
+        display: flex;
+        justify-content: center;
+        margin: 30px 0;
+    }
+    .location-card {
+        width: 130px;
+        height: 130px;
+        background: linear-gradient(135deg, #7DE2FC 0%, #B9EDF8 100%);
+        border-radius: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 20px 40px rgba(0, 193, 212, 0.2);
+    }
+
+    .intro-section {
+        text-align: center;
+        padding: 0 10px;
+        color: #555555;
+        line-height: 1.8;
+        font-size: 1.1rem;
+    }
+    .intro-highlight {
+        color: #1E1E1E;
+        font-weight: 700;
+        border-bottom: 3px solid #00C1D4;
+    }
+
     .stSelectbox label, .stMultiSelect label {
         font-size: 1.2rem !important;
         font-weight: 800 !important;
         color: #1E1E1E !important;
-        padding-top: 15px;
+        padding-top: 20px;
     }
-
-    /* 针对白底优化分割线颜色 */
-    hr {
-        border-top: 1px solid #E6E6E6 !important;
-    }
+    
+    #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
+# 状态管理
+if 'page' not in st.session_state:
+    st.session_state.page = 'home'
+if 'form_version' not in st.session_state:
+    st.session_state.form_version = 0
+
+def hard_reset_test():
+    st.session_state.form_version += 1
+
 def main():
-    st.title("🌙 灵魂契合度实验室")
-    st.write("已切换至**简约白视觉主题**。基于生活逻辑的确定性匹配系统。")
-    st.divider()
+    if st.session_state.page == 'home':
+        # 应用超大渐变标题
+        st.markdown('<p class="hero-title">你的性格与哪个城市<br>是天选CP</p>', unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="icon-container">
+            <div class="location-card">
+                <span style="font-size: 70px;">📍</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="intro-section">
+            城市是钢筋水泥的森林，也是安放内心的容器。<br>
+            有人生来属于上海的霓虹，有人注定流浪在 <span class="intro-highlight">大理的云边</span>。<br><br>
+            解锁你的「地理人格」，通过深度潜意识演算，<br>
+            找到那个懂你悲欢、与你灵魂同鸣的 <span class="intro-highlight">天选之地</span>。
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        c1, c2, c3 = st.columns([1, 2, 1])
+        with c2:
+            if st.button("✨ 开启我的地理人格测算", use_container_width=True):
+                st.session_state.page = 'test'
+                st.rerun()
 
-    # --- 1. 基础信息录入 ---
-    col1, col2 = st.columns(2)
-    with col1:
-        gender = st.selectbox("1. 怎么称呼您的性别？", ["请选择...", "男生", "女生", "酷儿/保密"])
-    with col2:
-        my_sign = st.selectbox("2. 您的星座是？", 
-                             ["请选择...", "白羊座", "金牛座", "双子座", "巨蟹座", "狮子座", "处女座", 
-                              "天秤座", "天蝎座", "射手座", "摩羯座", "水瓶座", "双鱼座"])
+    elif st.session_state.page == 'test':
+        v = st.session_state.form_version
+        st.markdown("<h2 style='text-align: center; color: #1E1E1E; font-weight:900;'>📍 录入您的灵魂坐标</h2>", unsafe_allow_html=True)
+        st.write("---")
 
-    # --- 2. 生活化问题清单 ---
-    questions = [
-        ("3. 周五晚上回到家，你通常第一件事是？", ["换上睡衣关掉手机躲起来", "给死党打个电话吐槽", "开始清理屋子", "打开投影看电影"]),
-        ("4. 如果要送你一份礼物，你最希望收到？", ["质感极好的实用品", "很有意义的手工小物件", "一张去远方的机票", "最新黑科技数码"]),
-        ("5. 对方做了让你不爽的事，你第一反应是？", ["当场说清楚", "默默扣分，直到归零", "先反思是不是自己太敏感了", "冷静列出逻辑谈谈"]),
-        ("6. 你们一起逛超市，你最享受哪个环节？", ["买完即走", "乱逛看新奇零食", "对比成分和性价比", "边走边闲聊"]),
-        ("7. 当你工作遇到委屈时，你最想听到？", ["“我养你”", "“带你去吃顿好的”", "“逻辑上对方确实不对”", "什么都别说，抱抱我"]),
-        ("8. 朋友圈里，你最反感哪种行为？", ["刷屏负能量", "炫耀精致生活", "毫无逻辑的杠精", "不回消息却发朋友圈"]),
-        ("9. 假如可以拥有一种超能力，你会选？", ["瞬间移动", "读心术", "时间静止", "点石成金"]),
-        ("10. 理想中的老去生活是怎样的？", ["开个花店或书店", "全球旅居", "闹市区的顶层公寓", "热热闹闹的大家庭"])
-    ]
-    
-    user_answers = []
-    for i, (q_text, opts) in enumerate(questions, 3):
-        ans = st.multiselect(q_text, opts, key=f"q{i}")
-        user_answers.append("".join(sorted(ans)))
+        # --- 题目部分 (保持原有逻辑) ---
+        col1, col2 = st.columns(2)
+        with col1:
+            gender = st.selectbox("1. 您的性别", ["请选择...", "男生", "女生", "保密"], key=f"gender_{v}")
+        with col2:
+            status = st.selectbox("2. 目前的生活阶段", ["请选择...", "学生党", "职场新锐", "自由职业", "资深搬砖人"], key=f"status_{v}")
 
-    st.write("---")
+        q3 = st.multiselect("3. 您最向往的周末状态？", 
+                           ["梧桐树下漫步", "弄堂里的精品咖啡", "洱海边发呆看云", "CBD不夜城的灯火", "山间徒步呼吸", "沉浸式看展", "宅家拼乐高", "烟火气摊位扫街"],
+                           placeholder="请选择（可多选）...", key=f"q3_{v}")
+        
+        q4 = st.multiselect("4. 您的核心性格标签？", 
+                           ["文艺浪漫", "精致独立", "随性自由", "硬核搞钱", "内敛静谧", "热情如火", "极简主义", "斜杠青年"],
+                           placeholder="请选择（可多选）...", key=f"q4_{v}")
+        
+        q5 = st.multiselect("5. 理想的居住环境？", 
+                           ["江南韵味", "科技创新前沿", "被大自然包围", "千年文化底蕴", "魔幻都市感"],
+                           placeholder="请选择（可多选）...", key=f"q5_{v}")
+        
+        # 6-10 题 (此处略，保持之前的代码内容)
+        q6 = st.selectbox("6. 面对社交压力？", ["请选择...", "社交悍匪", "礼貌疏离", "隐身术", "观察者"], key=f"q6_{v}")
+        q7 = st.selectbox("7. 你的消费观？", ["请选择...", "体验派", "实用派", "随性派", "极简派"], key=f"q7_{v}")
+        q8 = st.selectbox("8. 如果有长假？", ["请选择...", "大理/拉萨", "纽约/东京", "回老家", "闭关精进"], key=f"q8_{v}")
+        q9 = st.selectbox("9. 关系中最看重？", ["请选择...", "情感共鸣", "未来规划", "独立自由", "安全感"], key=f"q9_{v}")
+        q10 = st.selectbox("10. 你的座右铭？", ["请选择...", "诗与远方", "出众出局", "顺其自然", "知行合一"], key=f"q10_{v}")
 
-    # --- 3. 结果计算与展示 ---
-    if st.button("🚀 开启灵魂精准演算"):
-        if gender == "请选择..." or my_sign == "请选择..." or any(not a for a in user_answers):
-            st.error("❌ 数据残缺：请完成所有加粗标题的问题。")
-        else:
-            # 确定性哈希运算
-            raw_string = f"{gender}|{my_sign}|{'|'.join(user_answers)}"
-            hash_hex = hashlib.md5(raw_string.encode()).hexdigest()
-            hash_int = int(hash_hex, 16)
-            
-            with st.status("🔮 演算中心正在生成报告...", expanded=True) as status:
-                st.write("提取行为指纹...")
-                time.sleep(0.6)
-                st.write("匹配星轨交点...")
-                time.sleep(0.6)
-                status.update(label="演算完成！", state="complete", expanded=False)
-
-            # 结果数据库
-            match_pool = [
-                {"sign": "天蝎座", "tag": "深度链接者", "reason": "你需要极度的坦诚和深度的情感连接，而天蝎的专注能填满你的安全感。"},
-                {"sign": "摩羯座", "tag": "稳健合伙人", "reason": "你的务实与摩羯的靠谱是天作之合，你们是彼此最稳定的生活合伙人。"},
-                {"sign": "双子座", "tag": "灵感共鸣者", "reason": "你内心藏着的好奇心，只有双子能接住那些奇奇怪怪的梗，让生活永远不腻。"},
-                {"sign": "巨蟹座", "tag": "温柔守护者", "reason": "你外冷内热，巨蟹那种润物细无声的体贴，最能融化你的武装。"},
-                {"sign": "狮子座", "tag": "坚定偏爱者", "reason": "你有时会陷入犹豫，而狮子的果敢和光芒能带你打破僵局，并给你坚定的偏爱。"},
-                {"sign": "水瓶座", "tag": "自由灵魂家", "reason": "你讨厌被束缚，水瓶既能给你绝对的自由，又能和你进行灵魂深处的对话。"}
-            ]
-            
-            res = match_pool[hash_int % len(match_pool)]
-            comp_score = 85 + (hash_int % 15)
-            
-            st.balloons()
-
-            # --- 原生展示：白底黑字风格 ---
-            st.divider()
-            st.write("### 匹配结果：")
-            st.title(f"✨ {res['sign']} · {res['tag']}")
-            
-            # 使用原生 info 组件（在白底上自带浅蓝背景，非常醒目）
-            st.info(f"**💡 为什么是这个结果？**\n\n{res['reason']}")
-            
-            # 报告细节卡片
-            with st.container(border=True):
-                st.markdown("**🔍 演算透视报告**")
-                col_a, col_b = st.columns(2)
-                col_a.metric("契合度指数", f"{comp_score}%")
-                col_b.metric("磁场指纹", hash_hex[:8].upper())
+        if st.button("🚀 生成演算报告", use_container_width=True):
+            inputs = [gender, status, q3, q4, q5, q6, q7, q8, q9, q10]
+            if "请选择..." in inputs or any(not i for i in [q3, q4, q5]):
+                st.error("⚠️ 还有题目未完成哦！")
+            else:
+                raw_input = "".join([str(i) for i in inputs])
+                hash_int = int(hashlib.md5(raw_input.encode()).hexdigest(), 16)
                 
-                st.write(f"- 基于您对 **“{questions[0][0][3:7]}”** 等生活细节的选择。")
-                st.write("- 您在关系中更倾向于寻找 **稳定性与共鸣感的平衡**。")
-            
-            st.caption(f"校验哈希: {hash_hex}")
+                with st.status("🔮 正在锁定磁场...", expanded=False) as s:
+                    time.sleep(1.2)
+                    s.update(label="演算完成！", state="complete")
+
+                city_db = [
+                    {"name": "杭州", "score": "93%", "tags": ["精致", "江南", "平衡感"], "desc": "西湖的烟火气与数字时代的脉搏完美交织。"},
+                    {"name": "上海", "score": "97%", "tags": ["时尚", "独立", "国际化"], "desc": "你属于流光溢彩的黄浦江畔，你的精致只有在魔都能被彻底理解。"},
+                    {"name": "大理", "score": "89%", "tags": ["清新", "自由", "风花雪月"], "desc": "风花雪月是大理的注脚，更是你灵魂的出口。"},
+                    {"name": "成都", "score": "95%", "tags": ["安逸", "火辣", "包容性"], "desc": "那种热辣火爆的性格与极致安逸的生活态度在你身上完美共生。"},
+                    {"name": "北京", "score": "96%", "tags": ["宏大", "底蕴", "厚重感"], "desc": "你胸怀大志，北京的深厚底蕴最能接住你的野心。"},
+                    {"name": "深圳", "score": "98%", "tags": ["效率", "拼搏", "极速"], "desc": "你拒绝止步不前，深圳这座不谈出身的城市是你的助推器。"},
+                    {"name": "西安", "score": "91%", "tags": ["厚重", "文化", "坚定性"], "desc": "你内心深沉如古城墙，渴望在历史呼吸中感受生命底蕴。"},
+                    {"name": "长沙", "score": "94%", "tags": ["活力", "娱乐", "烟火气"], "desc": "你是天生的活力派。长沙深夜的欢腾最能点燃你的热情。"}
+                ]
+                
+                res = city_db[hash_int % len(city_db)]
+                st.balloons()
+
+                st.markdown(f"<h1 style='text-align: center; color: #00C1D4; font-size: 3.5rem;'>{res['score']}</h1>", unsafe_allow_html=True)
+                st.markdown(f"<h2 style='text-align: center;'>📍 天选之城：{res['name']}</h2>", unsafe_allow_html=True)
+                
+                t_col1, t_col2, t_col3 = st.columns(3)
+                t_col1.info(f"**{res['tags'][0]}**")
+                t_col2.info(f"**{res['tags'][1]}**")
+                t_col3.info(f"**{res['tags'][2]}**")
+                
+                with st.container(border=True):
+                    st.markdown("### ✨ 灵魂契合理由")
+                    st.write(res['desc'])
+                
+                st.button("🔄 重新测试", use_container_width=True, on_click=hard_reset_test)
 
 if __name__ == "__main__":
     main()
